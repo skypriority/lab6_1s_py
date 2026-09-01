@@ -1,39 +1,14 @@
-"""
-=======================================================================
- Сравнение РЕКУРСИВНОГО и ИТЕРАТИВНОГО построения бинарного дерева
- Вариант №1: root = 1, height = 5, left = root*2, right = root+3
-
- В файле:
-   1) build_tree_recursive  - рекурсия
-   2) build_tree_iterative  - цикл + очередь (deque)
-   3) проверка, что деревья совпадают
-   4) замер времени через timeit
-   5) график matplotlib
-   6) выводы
-=======================================================================
-"""
-
 import sys
 import timeit
 from collections import deque
 import matplotlib.pyplot as plt
 
-# рекурсия глубокая -> поднимаем лимит на всякий случай
 sys.setrecursionlimit(10000)
 
-
-# =====================================================================
-#  НАСТРОЙКИ ВАРИАНТА (меняем только эти 4 строки под свой номер)
-# =====================================================================
 MY_ROOT = 1
 MY_HEIGHT = 5
 MY_LEFT = lambda root: root * 2
 MY_RIGHT = lambda root: root + 3
-
-
-# =====================================================================
-#  1. РЕКУРСИВНОЕ ПОСТРОЕНИЕ
-# =====================================================================
 
 def build_tree_recursive(height=MY_HEIGHT,
                          root=MY_ROOT,
@@ -59,34 +34,21 @@ def build_tree_recursive(height=MY_HEIGHT,
                                       left_branch, right_branch),
     }
 
-
-# =====================================================================
-#  2. ИТЕРАТИВНОЕ ПОСТРОЕНИЕ (цикл + очередь)
-# =====================================================================
-
 def build_tree_iterative(height=MY_HEIGHT,
                          root=MY_ROOT,
                          left_branch=MY_LEFT,
                          right_branch=MY_RIGHT):
-    """
-    Строит ТО ЖЕ дерево БЕЗ рекурсии.
 
-    Идея: заводим очередь необработанных узлов.
-    Достаём узел -> создаём ему двух потомков -> кладём их в очередь.
-    Так дерево заполняется по уровням (обход в ширину, BFS).
-
-    Результат в точности такой же, как у рекурсивной версии.
-    """
     if height <= 0:
         return None
 
-    tree = {'value': root, 'left': None, 'right': None}   # корень
-    queue = deque([(tree, 1)])                            # (узел, уровень)
+    tree = {'value': root, 'left': None, 'right': None}   
+    queue = deque([(tree, 1)])                            
 
     while queue:
-        node, level = queue.popleft()    # popleft() = O(1)
+        node, level = queue.popleft()   
 
-        if level >= height:              # достигли дна -> это лист
+        if level >= height:              
             continue
 
         node['left'] = {'value': left_branch(node['value']),
@@ -100,17 +62,13 @@ def build_tree_iterative(height=MY_HEIGHT,
     return tree
 
 
-# =====================================================================
-#  ПЕЧАТЬ ДЕРЕВА (только для наглядности)
-# =====================================================================
-
 def print_tree(root_node):
     """Печатает дерево 'лёжа': корень слева, ветви вправо."""
     if root_node is None:
         print('(пустое дерево)')
         return
 
-    stack = [(root_node, '', '')]        # (узел, отступ, маркер)
+    stack = [(root_node, '', '')]      
     while stack:
         node, indent, marker = stack.pop()
         print(indent + marker + str(node['value']))
@@ -135,11 +93,6 @@ def count_nodes(tree):
             stack.append(node['right'])
     return n
 
-
-# =====================================================================
-#  3. ПРОВЕРКА: оба способа дают ОДИНАКОВОЕ дерево
-# =====================================================================
-
 def check_equal():
     print('=' * 64)
     print('1. ПРОВЕРКА: рекурсия и цикл строят одинаковое дерево')
@@ -150,11 +103,6 @@ def check_equal():
         itr = build_tree_iterative(height=h)
         status = 'совпадают' if rec == itr else 'РАЗНЫЕ!'
         print(f'  height={h}:  узлов={count_nodes(rec):>5}  ->  {status}')
-
-
-# =====================================================================
-#  4. ДЕМОНСТРАЦИЯ ДЕРЕВА
-# =====================================================================
 
 def demo():
     print('\n' + '=' * 64)
@@ -177,23 +125,13 @@ def demo():
                                     left_branch=lambda r: r - 10,
                                     right_branch=lambda r: r + 10))
 
-
-# =====================================================================
-#  5. ЗАМЕР ВРЕМЕНИ + ГРАФИК
-# =====================================================================
-
-# один фиксированный список высот для ВСЕХ прогонов
 HEIGHTS = [4, 6, 8, 10, 12, 14, 16]
-REPEAT = 5      # сколько прогонов усредняем
-NUMBER = 3      # сколько построений внутри одного прогона
+REPEAT = 5    
+NUMBER = 3     
 
 
 def bench(func, height):
-    """
-    Чистый бенчмарк ОДНОГО построения дерева.
-    Берём минимум из REPEAT прогонов -> меньше помех от ОС.
-    Возвращает время в миллисекундах.
-    """
+
     times = timeit.repeat(lambda: func(height=height),
                           repeat=REPEAT, number=NUMBER)
     return min(times) / NUMBER * 1000
@@ -221,10 +159,8 @@ def benchmark_and_plot():
         print(f'{h:>7} | {n:>7} | {t_rec:>12.3f} | '
               f'{t_itr:>9.3f} | {t_rec / t_itr:>13.2f}x')
 
-    # ---------- график ----------
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 
-    # слева: обычная шкала
     ax1.plot(HEIGHTS, rec_times, 'o-', label='build_tree_recursive')
     ax1.plot(HEIGHTS, itr_times, 's-', label='build_tree_iterative')
     ax1.set_xlabel('Высота дерева (height)')
@@ -233,7 +169,6 @@ def benchmark_and_plot():
     ax1.legend()
     ax1.grid(True, linestyle='--', alpha=0.5)
 
-    # справа: логарифмическая - видно рост в 2 раза на каждый уровень
     ax2.plot(HEIGHTS, rec_times, 'o-', label='build_tree_recursive')
     ax2.plot(HEIGHTS, itr_times, 's-', label='build_tree_iterative')
     ax2.set_yscale('log')
@@ -251,17 +186,12 @@ def benchmark_and_plot():
 
     return rec_times, itr_times
 
-
-# =====================================================================
-#  6. ГРАНИЦА РЕКУРСИИ
-# =====================================================================
-
 def recursion_limit_test():
     print('\n' + '=' * 64)
     print('6. ГДЕ ЛОМАЕТСЯ РЕКУРСИЯ, А ЦИКЛ - НЕТ')
     print('=' * 64)
 
-    sys.setrecursionlimit(100)           # искусственно занижаем лимит
+    sys.setrecursionlimit(100)          
     print('Ставим лимит рекурсии = 100 и строим дерево height=200:')
 
     try:
@@ -271,17 +201,12 @@ def recursion_limit_test():
         print('  рекурсия: RecursionError - стек переполнен!')
 
     try:
-        t = build_tree_iterative(height=20, root=1)   # 20, чтобы влезло в память
+        t = build_tree_iterative(height=20, root=1)   
         print(f'  цикл    : построил дерево height=20, узлов = {count_nodes(t)}')
     except RecursionError:
         print('  цикл    : RecursionError')
 
-    sys.setrecursionlimit(10000)         # возвращаем как было
-
-
-# =====================================================================
-#  ТОЧКА ВХОДА
-# =====================================================================
+    sys.setrecursionlimit(10000)        
 
 if __name__ == '__main__':
     check_equal()
@@ -289,7 +214,6 @@ if __name__ == '__main__':
     rec, itr = benchmark_and_plot()
     recursion_limit_test()
 
-    # ---------- выводы ----------
     avg = sum(r / i for r, i in zip(rec, itr)) / len(rec)
     print('\n' + '=' * 64)
     print('7. ВЫВОДЫ')
