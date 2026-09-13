@@ -23,7 +23,7 @@ def build_tree_recursive(height=MY_HEIGHT,
     Результат: {'value': 1, 'left': {...}, 'right': {...}}
     height <= 0 -> None (база рекурсии)
     """
-    if height <= 0:                      # база: дальше не идём
+    if height <= 0:
         return None
 
     return {
